@@ -7,7 +7,7 @@ import re
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from typing import List, Optional, Any, Dict
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from pyprojroot import here
@@ -15,6 +15,7 @@ from pyprojroot import here
 from chatbot.load_config import LoadProjectConfig
 from agent_graph.load_tools_config import LoadToolsConfig
 from agent_graph.builld_full_graph import build_graph
+from agent_graph.tool_user_doc_rag import process_and_embed_user_document
 from utils.app_utils import create_directory
 from chatbot.memory import Memory
 
@@ -84,6 +85,7 @@ TOOL_LABELS = {
     "query_sqldb": "PostgreSQL SQL Agent",
     "lookup_swiss_airline_policy": "Swiss Airline Policy RAG",
     "lookup_stories": "Stories Knowledge Base RAG",
+    "lookup_user_document": "Uploaded Document RAG",
     "tavily_search_results_json": "Tavily Web Search",
     "tavily_search": "Tavily Web Search"
 }
@@ -97,6 +99,24 @@ def health_check():
         "service": "Agentic AI RAG-SQL-Web Backend",
         "version": "1.0.0"
     }
+
+
+@app.post("/api/upload")
+async def upload_document_endpoint(
+    file: UploadFile = File(...),
+    thread_id: str = Form(...)
+):
+    """Ingests and embeds custom user documents dynamically into ChromaDB vector store."""
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No file selected.")
+
+    try:
+        contents = await file.read()
+        result = process_and_embed_user_document(contents, file.filename, thread_id)
+        return result
+    except Exception as e:
+        print("Upload processing error:", e)
+        raise HTTPException(status_code=500, detail=f"Document processing failed: {str(e)}")
 
 
 @app.post("/api/chat", response_model=ChatResponse)
@@ -158,6 +178,8 @@ def chat_endpoint(request: ChatRequest):
                         primary_tool_used = "policy_rag"
                     elif "stories" in t_name.lower():
                         primary_tool_used = "stories_rag"
+                    elif "user_doc" in t_name.lower() or "user_document" in t_name.lower():
+                        primary_tool_used = "policy_rag"
                     elif "search" in t_name.lower() or "tavily" in t_name.lower():
                         primary_tool_used = "web_search"
 
@@ -184,6 +206,13 @@ def chat_endpoint(request: ChatRequest):
                         if p.strip():
                             rag_sources.append(
                                 RAGSource(title="Story Knowledge Base", content=p.strip())
+                            )
+                elif msg_name == "lookup_user_document":
+                    passages = str(content).split("\n\n")
+                    for p in passages:
+                        if p.strip():
+                            rag_sources.append(
+                                RAGSource(title="Uploaded User Document", content=p.strip())
                             )
                 elif "tavily" in msg_name or msg_name == "tavily_search_results_json":
                     if isinstance(content, list):

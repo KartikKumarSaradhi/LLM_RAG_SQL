@@ -27,6 +27,26 @@ export const apiService = {
     }
   },
 
+  async uploadDocument(file: File, threadId: string): Promise<any> {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('thread_id', threadId);
+
+      const response = await apiClient.post('/api/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.data?.detail) {
+        throw new Error(error.response.data.detail);
+      }
+      throw new Error(error.message || 'Failed to upload and index document.');
+    }
+  },
+
   async sendMessage(
     message: string,
     threadId: string,

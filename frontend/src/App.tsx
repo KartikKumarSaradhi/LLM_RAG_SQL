@@ -95,6 +95,9 @@ export const App: React.FC = () => {
     }
   };
 
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadedFileName, setUploadedFileName] = useState<string | undefined>(undefined);
+
   const [credentials, setCredentials] = useState<CustomCredentials>(() => {
     try {
       const saved = localStorage.getItem('agentic_ai_creds_v1');
@@ -112,6 +115,32 @@ export const App: React.FC = () => {
       console.error('Failed to save credentials', e);
     }
   }, [credentials]);
+
+  const handleUploadFile = async (file: File) => {
+    setIsUploading(true);
+    try {
+      const res = await apiService.uploadDocument(file, activeId);
+      setUploadedFileName(file.name);
+
+      const sysMsg: ChatMessage = {
+        id: `msg-${Date.now()}-sys`,
+        sender: 'assistant',
+        text: `📄 **Document Uploaded & Indexed**: Successfully parsed **\`${file.name}\`** (${res.chunks || 'multiple'} text chunks embedded into Vector DB). You can now ask questions about this document!`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        toolUsed: 'policy_rag',
+      };
+
+      setConversations((prev) =>
+        prev.map((c) =>
+          c.id === activeId ? { ...c, messages: [...c.messages, sysMsg] } : c
+        )
+      );
+    } catch (err: any) {
+      alert(`Upload failed: ${err.message}`);
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const handleSendMessage = async (text: string) => {
     const userMsg: ChatMessage = {
@@ -230,7 +259,11 @@ export const App: React.FC = () => {
 
         <ChatInput
           onSendMessage={handleSendMessage}
+          onUploadFile={handleUploadFile}
           isProcessing={isProcessing}
+          isUploading={isUploading}
+          uploadedFileName={uploadedFileName}
+          onClearUploadedFile={() => setUploadedFileName(undefined)}
           inputPrompt={inputPrompt}
         />
       </main>

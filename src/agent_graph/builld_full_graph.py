@@ -117,6 +117,7 @@ from agent_graph.tool_postgres_sqlagent import query_sqldb
 from agent_graph.tool_lookup_policy_rag import lookup_swiss_airline_policy
 from agent_graph.tool_tavily_search import load_tavily_search_tool
 from agent_graph.tool_stories_rag import lookup_stories
+from agent_graph.tool_user_doc_rag import lookup_user_document
 from agent_graph.load_tools_config import LoadToolsConfig
 from agent_graph.agent_backend import State, BasicToolNode
 
@@ -190,6 +191,7 @@ def build_graph(groq_api_key: str = None, tavily_api_key: str = None, postgres_u
         search_tool,
         lookup_swiss_airline_policy,
         lookup_stories,
+        lookup_user_document,           # ✅ custom user document RAG
     ]
 
     llm_with_tools = llm.bind_tools(tools)
