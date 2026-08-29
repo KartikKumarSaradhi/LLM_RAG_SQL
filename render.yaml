@@ -29,7 +29,6 @@ services:
   - type: web
     name: agentic-ai-frontend
     env: static
-    region: oregon
     buildCommand: cd frontend && npm install && npm run build
     staticPublishPath: frontend/dist
     routes:
@@ -41,4 +40,4 @@ services:
         fromService:
           type: web
           name: agentic-ai-backend
-          property: url
+          property: host
