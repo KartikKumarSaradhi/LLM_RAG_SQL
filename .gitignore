@@ -1,23 +1,87 @@
-# Virtual environments
+# -----------------------------------------------------------------------------
+# Environment Variables & Secrets (CRITICAL FOR SECURITY)
+# -----------------------------------------------------------------------------
+.env
+.env.local
+.env.*.local
+
+# -----------------------------------------------------------------------------
+# Python Virtual Environments
+# -----------------------------------------------------------------------------
 venv/
 env/
 .venv/
+ENV/
+env.bak/
+venv.bak/
 
-# Environment variables
-.env
-
-# Python cache
+# -----------------------------------------------------------------------------
+# Python Caches & Build Artifacts
+# -----------------------------------------------------------------------------
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 
-# Jupyter Notebook checkpoints
+# -----------------------------------------------------------------------------
+# Node.js & React Frontend (frontend/ directory)
+# -----------------------------------------------------------------------------
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/.vite/
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/.pnpm-debug.log*
+
+# Node modules fallback
+node_modules/
+npm-debug.log
+
+# -----------------------------------------------------------------------------
+# Logs & Memory Stores
+# -----------------------------------------------------------------------------
+memory/*.csv
+*.log
+
+# -----------------------------------------------------------------------------
+# Jupyter Notebook & Testing Caches
+# -----------------------------------------------------------------------------
 .ipynb_checkpoints/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
 
-# VS Code
+# -----------------------------------------------------------------------------
+# IDE & System Files
+# -----------------------------------------------------------------------------
 .vscode/
-
-# OS files
+.idea/
+*.swp
+*.swo
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db

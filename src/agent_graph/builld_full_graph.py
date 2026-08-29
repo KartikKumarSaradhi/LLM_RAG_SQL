@@ -164,21 +164,25 @@ def route_tools(state: State):
 # ------------------------------------------------------------------
 # Graph builder
 # ------------------------------------------------------------------
-def build_graph():
+def build_graph(groq_api_key: str = None, tavily_api_key: str = None, postgres_uri: str = None):
     """
-    Builds a clean, loop-safe agent graph.
+    Builds a clean, loop-safe agent graph with optional custom credential overrides.
     """
 
     # -------------------------------
     # 1. Initialize LLM
     # -------------------------------
-    llm = ChatGroq(model="openai/gpt-oss-120b")
+    if groq_api_key:
+        llm = ChatGroq(model="openai/gpt-oss-120b", groq_api_key=groq_api_key)
+    else:
+        llm = ChatGroq(model="openai/gpt-oss-120b")
 
     # -------------------------------
     # 2. Load tools (MINIMAL SET)
     # -------------------------------
     search_tool = load_tavily_search_tool(
-        TOOLS_CFG.tavily_search_max_results
+        TOOLS_CFG.tavily_search_max_results,
+        api_key=tavily_api_key
     )
 
     tools = [

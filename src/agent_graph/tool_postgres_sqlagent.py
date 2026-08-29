@@ -34,15 +34,33 @@ connection_string = (
     f"@{host}:{port}/{database}"
 )
 
-# Optional: debug once
-print("Connecting to:", f"{user}@{host}:{port}/{database}")
+db_object = None
+agent = None
 
-# Build engine
-engine = create_engine(connection_string)
-# db = SQLDatabase(engine=engine)
-db_object = SQLDatabase(engine=engine)
-tool_kit = SQLDatabaseToolkit(db=db_object, llm=sql_llm)
-tools = tool_kit.get_tools()
+def get_sql_agent(custom_uri: str = None, custom_llm = None):
+    global db_object, agent
+    target_llm = custom_llm or sql_llm
+    target_uri = custom_uri or connection_string
+
+    if custom_uri is None and agent is not None:
+        return agent
+
+    try:
+        print("Connecting to PostgreSQL:", target_uri if "@" not in target_uri else target_uri.split("@")[-1])
+        engine = create_engine(target_uri)
+        db_inst = SQLDatabase(engine=engine)
+        tool_kit = SQLDatabaseToolkit(db=db_inst, llm=target_llm)
+        tools = tool_kit.get_tools()
+        created_agent = create_agent(
+            model=target_llm,
+            tools=tools
+        )
+        if custom_uri is None:
+            agent = created_agent
+        return created_agent
+    except Exception as err:
+        print(f"Warning: Could not connect to PostgreSQL database: {err}")
+        return None
 
 system_role = """Given the following user question, corresponding SQL query, and SQL result, answer the user question.
 
@@ -52,21 +70,22 @@ SQL Result: {result}
 Answer:
 """
 
-agent = create_agent(
-    model = sql_llm,
-    tools=tools
-)
-
 @tool
 def query_sqldb(question: str) -> str:
     """
     Use this tool when the user asks a question that requires querying
     the SQL database. The tool internally uses an agentic SQL reasoner.
     """
-    for step in agent.stream(
-        {"messages": [{"role": "user", "content": question}]}, stream_mode="values"
-    ):
-        step["messages"][-1].pretty_print()
+    sql_agent_inst = get_sql_agent()
+    if sql_agent_inst is None:
+        return "PostgreSQL database is currently unavailable or offline."
+    try:
+        for step in sql_agent_inst.stream(
+            {"messages": [{"role": "user", "content": question}]}, stream_mode="values"
+        ):
+            step["messages"][-1].pretty_print()
+    except Exception as err:
+        return f"SQL Query execution error: {str(err)}"
 
 
 # # from langchain_classic.agents import create_openai_tools_agent, AgentExecutor
