@@ -1,8 +1,7 @@
 import json
-from IPython.display import Image, display
 from typing import Annotated, Literal
 from typing_extensions import TypedDict
-from langchain_core.messages import ToolMessage,AIMessage
+from langchain_core.messages import ToolMessage, AIMessage
 from langgraph.graph.message import add_messages
 
 
@@ -125,6 +124,7 @@ def plot_agent_schema(graph):
         None
     """
     try:
+        from IPython.display import Image, display
         display(Image(graph.get_graph().draw_mermaid_png()))
     except Exception:
         # This requires some extra dependencies and is optional

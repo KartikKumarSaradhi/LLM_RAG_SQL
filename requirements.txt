@@ -18,3 +18,5 @@ pyprojroot>=0.3.0
 pyyaml>=6.0
 pypdf>=3.0.0
 pandas>=2.0.0
+ipython
+
