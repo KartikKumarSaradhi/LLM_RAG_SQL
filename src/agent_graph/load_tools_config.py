@@ -12,8 +12,13 @@ class LoadToolsConfig:
             app_config = yaml.load(cfg, Loader=yaml.FullLoader)
             
         #env variables
-        os.environ['HUGGINGFACEHUB_API_TOKEN'] = os.getenv("HUGGINGFACEHUB_API_TOKEN")
-        os.environ['TAVILY_API_KEY'] = os.getenv("TAVILY_API_KEY")
+        hf_token = os.getenv("HUGGINGFACEHUB_API_TOKEN")
+        if hf_token:
+            os.environ['HUGGINGFACEHUB_API_TOKEN'] = hf_token
+
+        tavily_key = os.getenv("TAVILY_API_KEY")
+        if tavily_key:
+            os.environ['TAVILY_API_KEY'] = tavily_key
             
         # primary agent 
         self.primary_agent_llm = app_config["primary_agent"]["llm"]
